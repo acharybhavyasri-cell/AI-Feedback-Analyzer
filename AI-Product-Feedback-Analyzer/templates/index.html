@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Multi-Company Feedback Analyzer</title>
+    
+    <!-- Google Fonts & Chart.js & Lucide Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <i data-lucide="building-2" class="brand-icon"></i>
+                <h2>InsightPulse<span>.ai</span></h2>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="#dashboard" class="nav-item active">
+                    <i data-lucide="layout-dashboard"></i> Dashboard
+                </a>
+                <a href="#company-upload" class="nav-item">
+                    <i data-lucide="upload-cloud"></i> Upload Dataset
+                </a>
+                <a href="#feedback-list" class="nav-item">
+                    <i data-lucide="file-text"></i> Feedback Log
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-pill">
+                    <i data-lucide="user-check"></i>
+                    <span>Product Intelligence</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header Bar -->
+            <header class="top-header">
+                <div class="header-title">
+                    <h1>AI Feedback & Review Dataset Analyzer 📊</h1>
+                    <p>Upload any customer feedback or review dataset (E-commerce, Tech, Healthcare, Finance, Food) to get instant AI insights</p>
+                </div>
+                <div class="header-actions" style="display: flex; gap: 0.75rem; align-items: center;">
+                    <button class="btn btn-secondary" onclick="exportData('csv')">
+                        <i data-lucide="download"></i> Export CSV
+                    </button>
+                    <button class="btn btn-primary" onclick="exportData('pdf')">
+                        <i data-lucide="file-down"></i> Export PDF Report
+                    </button>
+                </div>
+            </header>
+
+
+            <!-- Dashboard Overview Cards -->
+            <section class="dashboard-metrics" id="dashboard">
+                <div class="metric-card">
+                    <div class="metric-icon total">
+                        <i data-lucide="layers"></i>
+                    </div>
+                    <div class="metric-info">
+                        <span class="label">Total Feedback</span>
+                        <h3 id="stat-total">0</h3>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon positive">
+                        <span style="font-size: 1.5rem;">😊</span>
+                    </div>
+                    <div class="metric-info">
+                        <span class="label">Positive Sentiment</span>
+                        <h3 id="stat-positive">0%</h3>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon neutral">
+                        <span style="font-size: 1.5rem;">😐</span>
+                    </div>
+                    <div class="metric-info">
+                        <span class="label">Neutral Sentiment</span>
+                        <h3 id="stat-neutral">0%</h3>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon bug">
+                        <span style="font-size: 1.5rem;">😡</span>
+                    </div>
+                    <div class="metric-info">
+                        <span class="label">Negative Sentiment</span>
+                        <h3 id="stat-negative">0%</h3>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 1. Simple Dataset Upload Card (No Company Input Required) -->
+            <section class="card feedback-input-card" id="company-upload" style="margin-bottom: 2rem; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--primary-glow);">
+                <div class="card-header">
+                    <h3><i data-lucide="upload-cloud"></i> Upload Company Feedback Dataset</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Simply upload your file or paste reviews. The system will analyze it automatically!</p>
+                </div>
+                
+                <form id="company-dataset-form">
+                    <div class="form-group">
+                        <label for="dataset-file" style="font-weight: 600; font-size: 0.95rem;">📁 Choose File (PDF, DOCX, CSV, Excel, TXT, JSON)</label>
+                        <input type="file" id="dataset-file" class="form-control" accept=".pdf,.docx,.csv,.txt,.json,.xlsx" style="padding: 0.75rem; border: 1px dashed var(--primary);">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="feedback-raw-text" style="font-weight: 600; font-size: 0.95rem;">Or Paste Feedback Reviews Text</label>
+                        <textarea id="feedback-raw-text" class="form-control" rows="4" placeholder="Paste feedback text here..."></textarea>
+                    </div>
+
+                    <button type="submit" id="analyze-btn" class="btn btn-primary btn-block" style="font-size: 1rem; padding: 0.85rem;">
+                        <i data-lucide="brain"></i> Analyze Dataset & Generate Report
+                    </button>
+                </form>
+            </section>
+
+            <!-- 2. Dynamic Company Report Section -->
+            <section class="card company-report-card" id="company-report" style="margin-bottom: 2rem; background: rgba(15, 23, 42, 0.75); border: 1px solid var(--bg-card-border); padding: 1.75rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                    <h2 style="font-size: 1.4rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                        <span id="report-company-title">📊 Flipkart Feedback Analysis</span>
+                    </h2>
+                </div>
+
+                <!-- Summary Score Box -->
+                <div style="background: rgba(255, 255, 255, 0.04); border: 1px dashed var(--bg-card-border); border-radius: var(--radius-md); padding: 1rem 1.5rem; margin-bottom: 1.75rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 1.5rem;">
+                            <div>
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">😊 Positive</span>
+                                <h4 id="report-positive-pct" style="font-size: 1.25rem; font-weight: 700; color: #10b981;">62%</h4>
+                            </div>
+                            <div style="border-left: 1px solid var(--bg-card-border); height: 30px;"></div>
+                            <div>
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">😡 Negative</span>
+                                <h4 id="report-negative-pct" style="font-size: 1.25rem; font-weight: 700; color: #ef4444;">23%</h4>
+                            </div>
+                            <div style="border-left: 1px solid var(--bg-card-border); height: 30px;"></div>
+                            <div>
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">😐 Neutral</span>
+                                <h4 id="report-neutral-pct" style="font-size: 1.25rem; font-weight: 700; color: #3b82f6;">15%</h4>
+                            </div>
+                        </div>
+                        <div style="background: rgba(99, 102, 241, 0.15); padding: 0.5rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--primary);">
+                            <span style="font-size: 0.85rem; color: var(--text-muted);">⭐ Rating</span>
+                            <h4 id="report-rating" style="font-size: 1.2rem; font-weight: 700; color: #ffffff;">4.1 / 5</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sentiment Analysis Bars -->
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        😊 Sentiment Analysis
+                    </h3>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem; max-width: 600px; background: rgba(0,0,0,0.2); padding: 1.25rem; border-radius: var(--radius-md);">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <span style="width: 80px; font-weight: 500;">Positive</span>
+                            <div style="flex: 1; margin: 0 1rem; background: rgba(255,255,255,0.08); height: 16px; border-radius: 4px; overflow: hidden;">
+                                <div id="bar-positive" style="width: 62%; background: #10b981; height: 100%;"></div>
+                            </div>
+                            <span id="label-bar-positive" style="font-weight: 600; min-width: 40px;">62%</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <span style="width: 80px; font-weight: 500;">Neutral</span>
+                            <div style="flex: 1; margin: 0 1rem; background: rgba(255,255,255,0.08); height: 16px; border-radius: 4px; overflow: hidden;">
+                                <div id="bar-neutral" style="width: 15%; background: #3b82f6; height: 100%;"></div>
+                            </div>
+                            <span id="label-bar-neutral" style="font-weight: 600; min-width: 40px;">15%</span>
+                        </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <span style="width: 80px; font-weight: 500;">Negative</span>
+                            <div style="flex: 1; margin: 0 1rem; background: rgba(255,255,255,0.08); height: 16px; border-radius: 4px; overflow: hidden;">
+                                <div id="bar-negative" style="width: 23%; background: #ef4444; height: 100%;"></div>
+                            </div>
+                            <span id="label-bar-negative" style="font-weight: 600; min-width: 40px;">23%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Customer Issues -->
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        🚨 Main Customer Issues
+                    </h3>
+                    <ol id="main-issues-list" style="padding-left: 1.25rem; line-height: 2rem; color: var(--text-main); font-size: 0.95rem;">
+                        <li>🚚 Delivery Delay — <strong>124 mentions</strong></li>
+                        <li>📦 Product Quality — <strong>87 mentions</strong></li>
+                        <li>💰 Pricing — <strong>61 mentions</strong></li>
+                        <li>↩️ Return Problem — <strong>49 mentions</strong></li>
+                        <li>📞 Customer Support — <strong>35 mentions</strong></li>
+                    </ol>
+                </div>
+
+                <!-- Most Mentioned Features -->
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        ⭐ Most Mentioned Features
+                    </h3>
+                    <ul id="most-features-list" style="list-style: none; padding-left: 0; line-height: 2rem; color: var(--text-main); font-size: 0.95rem;">
+                        <li>🚚 Delivery</li>
+                        <li>📦 Product Quality</li>
+                        <li>💰 Price</li>
+                        <li>↩️ Returns</li>
+                        <li>📱 Mobile App</li>
+                    </ul>
+                </div>
+
+                <!-- Overall Company Analysis -->
+                <div style="margin-bottom: 2rem; background: rgba(99, 102, 241, 0.08); border-left: 4px solid var(--primary); padding: 1.25rem; border-radius: 0 var(--radius-md) var(--radius-md) 0;">
+                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                        🧠 Overall Company Analysis
+                    </h3>
+                    <p id="summary-title-text" style="font-weight: 600; font-size: 1rem; color: #ffffff; margin-bottom: 0.5rem;">
+                        🟢 Flipkart has mostly positive customer feedback.
+                    </p>
+                    <p id="summary-detail-text" style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5;">
+                        Customers are particularly satisfied with product variety and pricing. However, delivery delays and product quality are the most frequently reported problems.
+                    </p>
+                </div>
+
+                <!-- AI Recommendations -->
+                <div>
+                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        💡 AI Recommendations
+                    </h3>
+                    <ul id="ai-recommendations-list" style="list-style: none; padding-left: 0; line-height: 2rem; color: var(--text-main); font-size: 0.95rem;">
+                        <li>🚚 Improve delivery reliability.</li>
+                        <li>📦 Investigate frequently reported product-quality problems.</li>
+                        <li>📞 Improve customer-support response time.</li>
+                        <li>⭐ Continue investing in highly praised features.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 3. Categories Chart & Feedback Log Grid -->
+            <div class="dashboard-grid">
+                <!-- Categories Chart Card -->
+                <section class="card chart-card">
+                    <div class="card-header">
+                        <h3><i data-lucide="bar-chart-3"></i> Issue & Feedback Categories</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </section>
+
+                <!-- Recent Analysis Log -->
+                <section class="card feedback-list-card" id="feedback-list">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3><i data-lucide="list"></i> Analyzed Reviews Log</h3>
+                        <span id="active-company-label" style="font-size: 0.85rem; background: rgba(99,102,241,0.2); color: var(--primary); padding: 0.2rem 0.6rem; border-radius: 6px;">All Companies</span>
+                    </div>
+                    <div class="feedback-feed" id="feedback-feed" style="max-height: 420px; overflow-y: auto;">
+                        <div class="empty-state">
+                            <i data-lucide="inbox"></i>
+                            <p>No company dataset analyzed yet. Upload a dataset file or paste reviews above.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
+

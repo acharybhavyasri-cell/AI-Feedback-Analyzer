@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Analysis Report</title>
+    
+    <!-- Google Fonts & Lucide Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --text-color: #c9d1d9;
+            --text-bold: #f0f6fc;
+            --border-color: #30363d;
+            --accent-color: #58a6ff;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem 1rem;
+            line-height: 1.6;
+        }
+
+        .report-container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background: #21262d;
+            color: var(--text-bold);
+            text-decoration: none;
+        }
+
+        .btn:hover { background: #30363d; }
+
+        .report-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-bold);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Top Metric Row */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .metric-item .label {
+            font-size: 0.85rem;
+            color: #8b949e;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-item .value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-bold);
+        }
+
+        /* Warning notice box */
+        .notice-box {
+            background: rgba(210, 153, 34, 0.1);
+            border-left: 3px solid #d29922;
+            padding: 0.85rem 1.25rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #e3b341;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .section-heading {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-bold);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Sentiment Bars */
+        .bar-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-width: 500px;
+            margin-bottom: 2rem;
+        }
+
+        .bar-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .bar-label { width: 80px; font-size: 0.9rem; }
+        .bar-track {
+            flex: 1;
+            height: 16px;
+            background: #21262d;
+            border-radius: 3px;
+            margin: 0 1rem;
+            overflow: hidden;
+        }
+        .bar-fill { height: 100%; background: #238636; border-radius: 3px; }
+        .bar-val { font-size: 0.9rem; font-weight: 600; width: 45px; text-align: right; }
+
+        /* Issues and Lists */
+        ol.issues-list, ul.features-list, ul.recs-list {
+            padding-left: 1.25rem;
+            line-height: 2rem;
+            font-size: 0.95rem;
+        }
+
+        ul.features-list, ul.recs-list { list-style: none; padding-left: 0; }
+        ul.recs-list li { margin-bottom: 0.5rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+
+        /* Highlight keywords inside text */
+        strong, .highlight {
+            color: var(--text-bold);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        <!-- Top Nav Buttons -->
+        <div class="header-actions">
+            <a href="/" class="btn">← Analyze Another Dataset</a>
+            <div style="display: flex; gap: 0.5rem;">
+                <button class="btn" onclick="window.open('/api/export/csv', '_blank')">Export CSV</button>
+                <button class="btn" onclick="window.open('/api/export/pdf', '_blank')">Export PDF Report</button>
+            </div>
+        </div>
+
+        <!-- 1. Title -->
+        <h1 class="report-title">
+            📊 <span id="report-company-title">Flipkart Feedback Analysis</span>
+        </h1>
+
+        <!-- 2. Header Metrics Table -->
+        <div class="metrics-grid">
+            <div class="metric-item">
+                <span class="label">😄 Positive</span>
+                <span class="value" id="val-pos">34%</span>
+            </div>
+            <div class="metric-item">
+                <span class="label">😡 Negative</span>
+                <span class="value" id="val-neg">34%</span>
+            </div>
+            <div class="metric-item">
+                <span class="label">😐 Neutral</span>
+                <span class="value" id="val-neu">32%</span>
+            </div>
+            <div class="metric-item">
+                <span class="label">⭐ Rating</span>
+                <span class="value" id="val-rating">4.1/5</span>
+            </div>
+        </div>
+
+
+        <!-- 3. Sentiment Analysis -->
+        <div class="section-heading">
+            😄 Sentiment Analysis
+        </div>
+        <div class="bar-container">
+            <div class="bar-row">
+                <span class="bar-label">Positive</span>
+                <div class="bar-track"><div id="bar-pos-fill" class="bar-fill" style="width: 34%; background: #238636;"></div></div>
+                <span class="bar-val" id="bar-pos-val">34%</span>
+            </div>
+            <div class="bar-row">
+                <span class="bar-label">Neutral</span>
+                <div class="bar-track"><div id="bar-neu-fill" class="bar-fill" style="width: 32%; background: #388bfd;"></div></div>
+                <span class="bar-val" id="bar-neu-val">32%</span>
+            </div>
+            <div class="bar-row">
+                <span class="bar-label">Negative</span>
+                <div class="bar-track"><div id="bar-neg-fill" class="bar-fill" style="width: 34%; background: #da3633;"></div></div>
+                <span class="bar-val" id="bar-neg-val">34%</span>
+            </div>
+        </div>
+
+        <!-- 4. Main Customer Issues -->
+        <div class="section-heading">
+            🚨 Main Customer Issues
+        </div>
+        <ol class="issues-list" id="issues-list-container">
+            <li>🚚 <strong>Delivery Delay</strong> — 17+ negative feedback instances</li>
+            <li>📦 <strong>Product Quality / Wrong Product</strong> — 34+ mentions</li>
+            <li>↩️ <strong>Return & Refund Problems</strong> — 34+ mentions</li>
+            <li>💳 <strong>Payment & Checkout Issues</strong> — 34+ mentions</li>
+            <li>📱 <strong>Mobile App Problems</strong> — 17+ negative feedback instances</li>
+            <li>📞 <strong>Customer Support Delays</strong> — 17+ negative feedback instances</li>
+            <li>🏷️ <strong>Coupon Problems</strong> — 17+ negative feedback instances</li>
+        </ol>
+
+        <!-- 5. Most Mentioned Features -->
+        <div class="section-heading">
+            ⭐ Most Mentioned Features
+        </div>
+        <ul class="features-list" id="features-list-container">
+            <li>🚚 <strong>Delivery</strong></li>
+            <li>📦 <strong>Product Quality</strong></li>
+            <li>💰 <strong>Price & Discounts</strong></li>
+            <li>↩️ <strong>Returns & Refunds</strong></li>
+            <li>📱 <strong>Mobile App</strong></li>
+        </ul>
+
+        <!-- 6. Overall Company Analysis -->
+        <div class="section-heading">
+            🧠 Overall Company Analysis
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+            <p id="overall-status-text" style="font-weight: 600; color: #f0f6fc; margin-bottom: 0.5rem;">
+                🟡 <span id="company-name-span">Flipkart</span> has mixed customer feedback.
+            </p>
+            <p id="overall-desc-text" style="color: #8b949e; font-size: 0.95rem;">
+                Customers appreciate the <strong>product variety</strong>, <strong>delivery experience</strong>, <strong>discounts</strong>, <strong>packaging</strong>, and <strong>easy-to-use features</strong>.
+                <br><br>
+                However, the major negative feedback is related to <strong>delivery delays</strong>, <strong>product quality</strong>, <strong>payment/checkout problems</strong>, <strong>returns/refunds</strong>, and <strong>customer support response time</strong>.
+            </p>
+        </div>
+
+        <!-- 7. AI Recommendations -->
+        <div class="section-heading">
+            🤖 AI Recommendations
+        </div>
+        <ul class="recs-list" id="recs-list-container">
+            <li>🚚 Improve <strong>delivery reliability</strong> and delay notifications.</li>
+            <li>📦 Investigate frequently reported <strong>damaged/wrong-product</strong> issues.</li>
+            <li>💳 Improve <strong>payment and checkout reliability</strong>.</li>
+            <li>↩️ Speed up <strong>return and refund processing</strong>.</li>
+            <li>📞 Reduce <strong>customer-support response time</strong>.</li>
+            <li>⭐ Continue investing in highly appreciated features such as <strong>product variety and discounts</strong>.</li>
+        </ul>
+    </div>
+
+    <!-- Script to update report dynamically -->
+    <script>
+        document.addEventListener('DOMContentLoaded', fetchReportData);
+
+        async function fetchReportData() {
+            try {
+                const response = await fetch('/api/feedback');
+                const res = await response.json();
+                if (res.success) {
+                    renderReport(res);
+                }
+            } catch (e) {
+                console.error('Error fetching feedback:', e);
+            }
+        }
+
+        function renderReport(res) {
+            if (!res || !res.metrics) return;
+            const metrics = res.metrics;
+            const company = res.company || 'Dataset';
+
+            document.getElementById('report-company-title').textContent = `${company} Feedback Analysis`;
+            document.getElementById('company-name-span').textContent = company;
+
+            document.getElementById('val-pos').textContent = `${metrics.positive_pct}%`;
+            document.getElementById('val-neg').textContent = `${metrics.negative_pct}%`;
+            document.getElementById('val-neu').textContent = `${metrics.neutral_pct}%`;
+            document.getElementById('val-rating').textContent = metrics.rating || 'N/A';
+
+            document.getElementById('bar-pos-fill').style.width = `${metrics.positive_pct}%`;
+            document.getElementById('bar-neu-fill').style.width = `${metrics.neutral_pct}%`;
+            document.getElementById('bar-neg-fill').style.width = `${metrics.negative_pct}%`;
+
+            document.getElementById('bar-pos-val').textContent = `${metrics.positive_pct}%`;
+            document.getElementById('bar-neu-val').textContent = `${metrics.neutral_pct}%`;
+            document.getElementById('bar-neg-val').textContent = `${metrics.negative_pct}%`;
+
+            // Issues List
+            if (res.main_issues && res.main_issues.length > 0) {
+                const issuesElem = document.getElementById('issues-list-container');
+                issuesElem.innerHTML = res.main_issues.map(iss => `
+                    <li>${iss.name} — <strong>${iss.count} mentions</strong></li>
+                `).join('');
+            }
+
+            // Features List
+            if (res.top_features && res.top_features.length > 0) {
+                const featElem = document.getElementById('features-list-container');
+                featElem.innerHTML = res.top_features.map(feat => `
+                    <li>${feat.name}</li>
+                `).join('');
+            }
+
+            // Status title & detail
+            if (metrics.summary_title) {
+                document.getElementById('overall-status-text').innerHTML = `🟡 ${metrics.summary_title}`;
+            }
+            if (metrics.summary_detail) {
+                document.getElementById('overall-desc-text').innerHTML = metrics.summary_detail;
+            }
+
+            // AI Recs
+            if (res.recommendations && res.recommendations.length > 0) {
+                const recsElem = document.getElementById('recs-list-container');
+                recsElem.innerHTML = res.recommendations.map(r => `
+                    <li>${r}</li>
+                `).join('');
+            }
+        }
+    </script>
+</body>
+</html>
+
